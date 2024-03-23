@@ -1,14 +1,16 @@
 #[derive(Debug)]
+#[derive(PartialEq)]
 pub enum Token {
     IntT, FloatT, CharT, VoidT,
     IntN { num: i32 }, FloatN { num: f64 }, CharN { num: u8 },
     If, Else,
     While,
+    Return,
     LP, RP,
     LC, RC,
     LB, RB,
     Semicolon, Comma, Assignment,
-    Plus, Minus, Slash, Star, 
+    Plus, Minus, Star, Slash, 
     Bigger, Lesser, Equal,
     LesserEqual, BiggerEqual,
     Inc, Dec, 
@@ -117,6 +119,11 @@ pub fn lex(code: &String, tokens: &mut Vec<Token>) {
             },
             '/' => {
                 match chars.peek() {
+                    Some(&'/') => {
+                        while chars.peek().unwrap() != &'\n' {
+                            chars.next();
+                        }
+                    },
                     Some(&'=') => {
                         chars.next();
                         tokens.push(Token::UnDiv);
@@ -165,6 +172,7 @@ pub fn lex(code: &String, tokens: &mut Vec<Token>) {
                     "if" => tokens.push(Token::If),
                     "else" => tokens.push(Token::Else),
                     "while" => tokens.push(Token::While),
+                    "return" => tokens.push(Token::Return),
                     _ => tokens.push(Token::Id { tok_lexeme: lexeme }),
                 };
             }
