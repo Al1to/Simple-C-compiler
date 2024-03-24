@@ -335,6 +335,7 @@ fn parse_if(index: &mut usize, tokens: &Vec<Token>) -> Node {
                 }
             }
 
+            *index += 1;
             Node::Else { block: Box::new(block) }
         },
         _ => {
