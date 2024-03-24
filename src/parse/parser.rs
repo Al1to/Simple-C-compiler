@@ -135,11 +135,11 @@ fn parse_func_def(index: &mut usize, tokens: &Vec<Token>) -> Node {
                     Token::CharT | Token::BoolT | Token::IntT | Token::FloatT => {
                         block.get_vec_mut().push(Rc::new(RefCell::new(parse_var(index, tokens, false))));
                     },
-                    Token::If => { // TODO:
+                    Token::If => {
                         block.get_vec_mut().push(Rc::new(RefCell::new(parse_if(index, tokens))));
                     },
-                    Token::While => { // TODO:
-    
+                    Token::While => {
+                        block.get_vec_mut().push(Rc::new(RefCell::new(parse_while(index, tokens))));
                     },
                     Token::Id { tok_lexeme: _ } | Token::Negation | Token::Inc | Token::Dec => {
                         block.get_vec_mut().push(Rc::new(RefCell::new(parse_expr(index, tokens))));
@@ -344,6 +344,58 @@ fn parse_if(index: &mut usize, tokens: &Vec<Token>) -> Node {
     };
 
     Node::If { cond: Box::new(if_cond), block: Box::new(if_block), next: Box::new(if_next) }
+}
+
+fn parse_while(index: &mut usize, tokens: &Vec<Token>) -> Node {
+    *index += 1;
+    let while_cond = match tokens[*index] {
+        Token::LP => {
+            *index += 1;
+            parse_expr(index, tokens)
+        },
+        _ => {
+            panic!("Compiler message: expected '('.");
+        }
+    };
+
+    *index += 1;
+    let while_block = match &tokens[*index] {
+        Token::LC => {
+            *index += 1;
+            let mut block = Node::Block { vec: Vec::new() };
+            loop {
+                match &tokens[*index] {
+                    Token::RC => {
+                        break;
+                    },
+                    Token::CharT | Token::BoolT | Token::IntT | Token::FloatT => {
+                        block.get_vec_mut().push(Rc::new(RefCell::new(parse_var(index, tokens, false))));
+                    },
+                    Token::If => {
+                        block.get_vec_mut().push(Rc::new(RefCell::new(parse_if(index, tokens))));
+                    },
+                    Token::While => {
+                        block.get_vec_mut().push(Rc::new(RefCell::new(parse_while(index, tokens))));
+                    },
+                    Token::Id { tok_lexeme: _ } | Token::Negation | Token::Inc | Token::Dec => {
+                        block.get_vec_mut().push(Rc::new(RefCell::new(parse_expr(index, tokens))));
+                    },
+                    Token::Semicolon => {
+                        *index += 1;
+                    },
+                    _ => {
+                        panic!("Compiler message: found {:?}.", &tokens[*index]);
+                    }
+                }
+            }
+            block
+        },
+        _ => {
+            panic!("Compiler message: Expected ')'.");
+        }
+    };
+
+    Node::While { cond: Box::new(while_cond), block: Box::new(while_block) }
 }
 
 fn parse_expr(index: &mut usize, tokens: &Vec<Token>) -> Node {
