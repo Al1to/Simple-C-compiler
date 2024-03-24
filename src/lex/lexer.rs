@@ -1,8 +1,9 @@
 #[derive(Debug)]
 #[derive(PartialEq)]
 pub enum Token {
-    IntT, FloatT, CharT, VoidT,
+    IntT, FloatT, CharT, BoolT, VoidT,
     IntN { num: i32 }, FloatN { num: f64 }, CharN { num: u8 },
+    BoolTrue, BoolFalse,
     If, Else,
     While,
     Return,
@@ -11,8 +12,9 @@ pub enum Token {
     LB, RB,
     Semicolon, Comma, Assignment,
     Plus, Minus, Star, Slash, 
-    Bigger, Lesser, Equal,
+    Bigger, Lesser, Equal, NotEqual,
     LesserEqual, BiggerEqual,
+    Negation,
     Inc, Dec, 
     UnAdd, UnSub, UnMul, UnDiv,
     Id { tok_lexeme: String },
@@ -71,13 +73,10 @@ pub fn lex(code: &String, tokens: &mut Vec<Token>) {
                 match chars.peek() {
                     Some(&'=') => {
                         chars.next();
-                        tokens.push(Token::LesserEqual);
+                        tokens.push(Token::NotEqual);
                     },
-                    Some(char) if !char.is_whitespace() && !char.is_alphanumeric() => {
-                        panic!("Compiler message: What's that '!{}' operator?", char);
-                    }
                     _ => {
-                        panic!("Compiler message: Wha? End of input after '!'.");
+                        tokens.push(Token::Negation);
                     }
                 };
             },
@@ -101,7 +100,7 @@ pub fn lex(code: &String, tokens: &mut Vec<Token>) {
             },
             '-' => {
                 match chars.peek() {
-                    Some(&'+') => {
+                    Some(&'-') => {
                         chars.next();
                         tokens.push(Token::Dec);
                     },
@@ -168,7 +167,10 @@ pub fn lex(code: &String, tokens: &mut Vec<Token>) {
                     "int" => tokens.push(Token::IntT),
                     "float" => tokens.push(Token::FloatT),
                     "char" => tokens.push(Token::CharT),
+                    "bool" => tokens.push(Token::BoolT),
                     "void" => tokens.push(Token::VoidT),
+                    "true" => tokens.push(Token::BoolTrue),
+                    "false" => tokens.push(Token::BoolFalse),
                     "if" => tokens.push(Token::If),
                     "else" => tokens.push(Token::Else),
                     "while" => tokens.push(Token::While),

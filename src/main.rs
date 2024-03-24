@@ -28,7 +28,7 @@ fn main() -> io::Result<()> {
     //     return Ok(());
     // } else {
         // let in_path = &args[1];
-        let in_path = &String::from("./test.c");
+        let in_path = &String::from("./test.cpp");
         let mut in_file = File::open(in_path)?;
         let mut code = String::new(); 
         in_file.read_to_string(&mut code)?;
